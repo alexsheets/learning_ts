@@ -1,7 +1,7 @@
 // define interface for db
-interface Database {
-    get(id: string): string;
-    set(id: string, value: string): void
+interface Database<T, K> {
+    get(id: K): T;
+    set(id: K, value: T): void;
 }
 
 interface Persistable {
@@ -9,22 +9,38 @@ interface Persistable {
     restoreFromString(storedState: string): void;
 }
 
-class InMemoryDatabase implements Database {
+type DBKeyType = string | number | symbol;
+
+// class InMemoryDatabase implements Database {
+//     // db: Record<string, string> = {};
+//     // private: only for this class
+//     // protected: descendants may see
+//     protected db: Record<string, string> = {};
+
+//     get(id: string): string {
+//         return this.db[id];
+//     }
+//     set(id: string, value: string): void {
+//         this.db[id] = value;
+//     }
+// }
+
+class InMemoryDatabase<T, K extends DBKeyType> implements Database<T, K> {
     // db: Record<string, string> = {};
     // private: only for this class
     // protected: descendants may see
-    protected db: Record<string, string> = {};
+    protected db: Record<K, T> = {} as Record<K, T>;
 
-    get(id: string): string {
+    get(id: K): T {
         return this.db[id];
     }
-    set(id: string, value: string): void {
+    set(id: K, value: T): void {
         this.db[id] = value;
     }
 }
 
 // receives everything inmemoryDB does
-class PersistentMemoryDb extends InMemoryDatabase implements Persistable {
+class PersistentMemoryDb<T, K extends DBKeyType> extends InMemoryDatabase<T, K> implements Persistable {
     saveToString(): string {
         return JSON.stringify(this.db);
     }
@@ -40,7 +56,8 @@ myDB.set("foo", "bar");
 console.log(myDB.get("foo"));
 
 
-const newDB = new PersistentMemoryDb();
+const newDB = new PersistentMemoryDb<number, string>();
+newDB.set("foo", 23);
 console.log(newDB.get("foo"));
 console.log(newDB.saveToString());
 
